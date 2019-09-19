@@ -649,6 +649,24 @@ public class HotCodePushPlugin extends CordovaPlugin {
         return startingPage;
     }
 
+    @Subscribe
+    public void onEvent(BeforeDownloadEvent event) {
+        Log.d("CHCP", "Before download");
+
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+
+        sendMessageToDefaultCallback(jsResult);
+    }
+
+    @Subscribe
+    public void onEvent(DownloadProgressEvent event) {
+        Log.d("CHCP", "Download progress");
+
+        PluginResult jsResult = PluginResultHelper.pluginResultFromEvent(event);
+
+        sendMessageToDefaultCallback(jsResult);
+    }
+
     // endregion
 
     // region Assets installation events

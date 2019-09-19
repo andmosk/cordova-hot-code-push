@@ -2,12 +2,15 @@ package com.nordnetab.chcp.main.network;
 
 import android.util.Log;
 
+import com.nordnetab.chcp.main.events.DownloadProgressEvent;
 import com.nordnetab.chcp.main.model.ManifestFile;
 import com.nordnetab.chcp.main.utils.FilesUtility;
 import com.nordnetab.chcp.main.utils.MD5;
 import com.nordnetab.chcp.main.utils.Paths;
 import com.nordnetab.chcp.main.utils.URLConnectionHelper;
 import com.nordnetab.chcp.main.utils.URLUtility;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -41,15 +44,24 @@ public class FileDownloader {
      * @throws Exception
      * @see ManifestFile
      */
-    public static void downloadFiles(final String downloadFolder,
-                                     final String contentFolderUrl,
-                                     final List<ManifestFile> files,
-                                     final Map<String, String> requestHeaders) throws Exception {
+    public void downloadFiles(
+            final String downloadFolder,
+            final String contentFolderUrl,
+            final List<ManifestFile> files,
+            final Map<String, String> requestHeaders
+    ) throws Exception {
+        this.updateProgress(0);
+
+        int downloadedFiles = 0;
         for (ManifestFile file : files) {
             String fileUrl = URLUtility.construct(contentFolderUrl, file.name);
             String filePath = Paths.get(downloadFolder, file.name);
             download(fileUrl, filePath, file.hash, requestHeaders);
+
+            this.updateProgress((float) (++downloadedFiles) / files.size());
         }
+
+        this.updateProgress(100);
     }
 
     /**
@@ -60,7 +72,7 @@ public class FileDownloader {
      * @param checkSum checksum of the file
      * @throws IOException
      */
-    public static void download(final String urlFrom,
+    public void download(final String urlFrom,
                                 final String filePath,
                                 final String checkSum,
                                 final Map<String, String> requestHeaders) throws Exception {
@@ -91,5 +103,14 @@ public class FileDownloader {
         if (!downloadedFileHash.equals(checkSum)) {
             throw new IOException("File is corrupted: checksum " + checkSum + " doesn't match hash " + downloadedFileHash + " of the downloaded file");
         }
+    }
+
+    /**
+     * Reports progress to JS user.
+     *
+     * @param progress
+     */
+    private void updateProgress(float progress) {
+        EventBus.getDefault().post(new DownloadProgressEvent(progress));
     }
 }

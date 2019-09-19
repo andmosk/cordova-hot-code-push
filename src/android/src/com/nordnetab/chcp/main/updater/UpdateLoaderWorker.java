@@ -6,6 +6,7 @@ import android.util.Log;
 import com.nordnetab.chcp.main.config.ApplicationConfig;
 import com.nordnetab.chcp.main.config.ContentConfig;
 import com.nordnetab.chcp.main.config.ContentManifest;
+import com.nordnetab.chcp.main.events.BeforeDownloadEvent;
 import com.nordnetab.chcp.main.events.NothingToUpdateEvent;
 import com.nordnetab.chcp.main.events.UpdateDownloadErrorEvent;
 import com.nordnetab.chcp.main.events.UpdateIsReadyToInstallEvent;
@@ -23,6 +24,8 @@ import com.nordnetab.chcp.main.storage.ContentManifestStorage;
 import com.nordnetab.chcp.main.storage.IObjectFileStorage;
 import com.nordnetab.chcp.main.utils.FilesUtility;
 import com.nordnetab.chcp.main.utils.URLUtility;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 import java.util.Map;
@@ -112,6 +115,8 @@ class UpdateLoaderWorker implements WorkerTask {
 
             return;
         }
+
+        EventBus.getDefault().post(new BeforeDownloadEvent());
 
         // switch file structure to new release
         filesStructure.switchToRelease(newAppConfig.getContentConfig().getReleaseVersion());
@@ -219,7 +224,7 @@ class UpdateLoaderWorker implements WorkerTask {
         final List<ManifestFile> downloadFiles = diff.getUpdateFiles();
         boolean isFinishedWithSuccess = true;
         try {
-            FileDownloader.downloadFiles(filesStructure.getDownloadFolder(), contentUrl, downloadFiles, requestHeaders);
+            (new FileDownloader()).downloadFiles(filesStructure.getDownloadFolder(), contentUrl, downloadFiles, requestHeaders);
         } catch (Exception e) {
             e.printStackTrace();
             isFinishedWithSuccess = false;
