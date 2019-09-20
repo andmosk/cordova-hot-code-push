@@ -23,6 +23,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
+import android.util.Log;
+
 
 /**
  * Created by Nikolay Demyankov on 22.07.15.
@@ -51,17 +53,14 @@ public class FileDownloader {
             final Map<String, String> requestHeaders
     ) throws Exception {
         this.updateProgress(0);
-
         int downloadedFiles = 0;
         for (ManifestFile file : files) {
             String fileUrl = URLUtility.construct(contentFolderUrl, file.name);
             String filePath = Paths.get(downloadFolder, file.name);
             download(fileUrl, filePath, file.hash, requestHeaders);
 
-            this.updateProgress((float) (++downloadedFiles) / files.size());
+            this.updateProgress((float) (++downloadedFiles * 100) / files.size());
         }
-
-        this.updateProgress(100);
     }
 
     /**
