@@ -129,9 +129,14 @@ function broadcastEventFromNative(nativeMessage) {
     params.error = nativeMessage.error;
   }
 
+  if(nativeMessage.data)  {
+    params = nativeMessage.data;
+  }
+
   var chcpEvent = new CustomEvent(nativeMessage.action, {
     'detail': params
   });
+
   document.dispatchEvent(chcpEvent);
 }
 
